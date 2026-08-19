@@ -1,10 +1,15 @@
 export function SearchFormSection() {
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log("Submit del formulario");
+  };
+
   return (
     <section className="jobs-search">
       <h1>Encuentra tu próximo trabajo</h1>
       <p>Explora miles de oportunidades en el sector tecnológico.</p>
 
-      <form id="empleos-search-form" role="search">
+      <form id="empleos-search-form" role="search" onSubmit={handleSubmit}>
         <div className="search-bar">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -26,10 +31,12 @@ export function SearchFormSection() {
           <input
             name="search"
             id="empleos-search-input"
-            required
             type="text"
             placeholder="Buscar trabajos, empresas o habilidades"
           />
+          <button type="submit" style={{ position: "absolute", right: "4px" }}>
+            Buscar
+          </button>
         </div>
 
         <div className="search-filters">
