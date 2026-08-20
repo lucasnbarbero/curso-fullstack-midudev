@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 
-import jobsData from "../data/data.json";
 import { Pagination } from "../components/Pagination.jsx";
 import { SearchFormSection } from "../components/SearchFormSection.jsx";
 import { JobListings } from "../components/JobListings.jsx";
@@ -16,25 +15,43 @@ const useFilters = () => {
   const [textToFilter, setTextToFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const jobsFilterByFilters = jobsData.filter((job) => {
-    return (
-      filters.technology === "" || job.data.technology === filters.technology
-    );
-  });
+  const [jobs, setJobs] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const jobsWithTextFilter =
-    textToFilter === ""
-      ? jobsFilterByFilters
-      : jobsFilterByFilters.filter((job) => {
-          return job.titulo.toLowerCase().includes(textToFilter.toLowerCase());
-        });
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        setLoading(true);
 
-  const pagedResults = jobsWithTextFilter.slice(
-    (currentPage - 1) * RESULTS_PER_PAGES,
-    currentPage * RESULTS_PER_PAGES,
-  );
+        const params = new URLSearchParams();
 
-  const totalPages = Math.ceil(jobsWithTextFilter.length / RESULTS_PER_PAGES);
+        if (textToFilter) params.append("text", textToFilter);
+        if (filters.technology) params.append("technology", filters.technology);
+        if (filters.location) params.append("location", filters.location);
+        if (filters.experienceLevel)
+          params.append("experienceLevel", filters.experienceLevel);
+
+        const queryParams = params.toString();
+
+        const response = await fetch(
+          `https://jscamp-api.vercel.app/api/jobs?${queryParams}`,
+        );
+        const json = await response.json();
+
+        setJobs(json.data);
+        setTotal(json.total);
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchJobs();
+  }, [textToFilter, filters]);
+
+  const totalPages = Math.ceil(jobs.length / RESULTS_PER_PAGES);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -51,8 +68,9 @@ const useFilters = () => {
   };
 
   return {
-    jobsWithTextFilter,
-    pagedResults,
+    jobs,
+    total,
+    loading,
     totalPages,
     currentPage,
     handlePageChange,
@@ -63,17 +81,18 @@ const useFilters = () => {
 
 export function SearchPage() {
   const {
-    jobsWithTextFilter,
+    jobs,
+    total,
+    loading,
     currentPage,
     totalPages,
-    pagedResults,
     handlePageChange,
     handleSearch,
     handleTextFilter,
   } = useFilters();
   useEffect(() => {
-    document.title = `Resultados: ${jobsWithTextFilter.length}, Página ${currentPage} - Dev `;
-  }, [jobsWithTextFilter, currentPage]);
+    document.title = `Resultados: ${total}, Página ${currentPage} - Dev `;
+  }, [total, currentPage]);
 
   return (
     <>
@@ -84,7 +103,7 @@ export function SearchPage() {
         />
 
         <section>
-          <JobListings jobs={pagedResults} />
+          {loading ? <p>Cargando los empleos</p> : <JobListings jobs={jobs} />}
 
           <Pagination
             currentPage={currentPage}
