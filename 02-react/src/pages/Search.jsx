@@ -5,9 +5,9 @@ import { Pagination } from "../components/Pagination.jsx";
 import { SearchFormSection } from "../components/SearchFormSection.jsx";
 import { JobListings } from "../components/JobListings.jsx";
 
-const RESULTS_PER_PAGES = 5;
+const RESULTS_PER_PAGES = 4;
 
-export function SearchPage() {
+const useFilters = () => {
   const [filters, setFilters] = useState({
     technology: "",
     location: "",
@@ -50,6 +50,27 @@ export function SearchPage() {
     setCurrentPage(1);
   };
 
+  return {
+    jobsWithTextFilter,
+    pagedResults,
+    totalPages,
+    currentPage,
+    handlePageChange,
+    handleSearch,
+    handleTextFilter,
+  };
+};
+
+export function SearchPage() {
+  const {
+    jobsWithTextFilter,
+    currentPage,
+    totalPages,
+    pagedResults,
+    handlePageChange,
+    handleSearch,
+    handleTextFilter,
+  } = useFilters();
   useEffect(() => {
     document.title = `Resultados: ${jobsWithTextFilter.length}, Página ${currentPage} - Dev `;
   }, [jobsWithTextFilter, currentPage]);
