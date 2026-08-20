@@ -1,0 +1,73 @@
+import { useState } from "react";
+
+import jobsData from "../data/data.json";
+import { Pagination } from "../components/Pagination.jsx";
+import { SearchFormSection } from "../components/SearchFormSection.jsx";
+import { JobListings } from "../components/JobListings.jsx";
+
+const RESULTS_PER_PAGES = 5;
+
+export function SearchPage() {
+  const [filters, setFilters] = useState({
+    technology: "",
+    location: "",
+    experienceLevel: "",
+  });
+  const [textToFilter, setTextToFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const jobsFilterByFilters = jobsData.filter((job) => {
+    return (
+      filters.technology === "" || job.data.technology === filters.technology
+    );
+  });
+
+  const jobsWithTextFilter =
+    textToFilter === ""
+      ? jobsFilterByFilters
+      : jobsFilterByFilters.filter((job) => {
+          return job.titulo.toLowerCase().includes(textToFilter.toLowerCase());
+        });
+
+  const pagedResults = jobsWithTextFilter.slice(
+    (currentPage - 1) * RESULTS_PER_PAGES,
+    currentPage * RESULTS_PER_PAGES,
+  );
+
+  const totalPages = Math.ceil(jobsWithTextFilter.length / RESULTS_PER_PAGES);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleSearch = (filters) => {
+    setFilters(filters);
+    setCurrentPage(1);
+  };
+
+  const handleTextFilter = (text) => {
+    setTextToFilter(text);
+    setCurrentPage(1);
+  };
+
+  return (
+    <>
+      <main>
+        <SearchFormSection
+          onSearch={handleSearch}
+          onTextFilter={handleTextFilter}
+        />
+
+        <section>
+          <JobListings jobs={pagedResults} />
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </section>
+      </main>
+    </>
+  );
+}
