@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import jobsData from "../data/data.json";
 import { Pagination } from "../components/Pagination.jsx";
@@ -49,6 +49,10 @@ export function SearchPage() {
     setTextToFilter(text);
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    document.title = `Resultados: ${jobsWithTextFilter.length}, Página ${currentPage} - Dev `;
+  }, [jobsWithTextFilter, currentPage]);
 
   return (
     <>
