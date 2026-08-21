@@ -20,9 +20,11 @@ export function Header() {
           DevJobs
         </h1>
       </Link>
+
       <nav>
-        {/* <a href="">Inicio</a> */}
         <Link href="/search">Empleos</Link>
+
+        <a href="/search">Sin SPA</a>
       </nav>
     </header>
   );

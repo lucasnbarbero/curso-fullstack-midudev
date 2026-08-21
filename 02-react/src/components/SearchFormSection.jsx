@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 const useSearchForm = ({
   idText,
@@ -8,12 +8,17 @@ const useSearchForm = ({
   onSearch,
   onTextFilter,
 }) => {
+  const timeoutId = useRef(null);
   const [searchText, setSearchText] = useState("");
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
+
+    if (event.target.name === idText) {
+      return;
+    }
 
     const filters = {
       search: formData.get(idText),
@@ -27,8 +32,16 @@ const useSearchForm = ({
 
   const handleTextChange = (event) => {
     const text = event.target.value;
-    setSearchText(text);
-    onTextFilter(text);
+    setSearchText(text); // Actualizamos el input inmediatamente
+
+    // DEBOUNCE: Cancelar el timeout anterior
+    if (timeoutId.current) {
+      clearTimeout(timeoutId.current);
+    }
+
+    timeoutId.current = setTimeout(() => {
+      onTextFilter(text);
+    }, 1000);
   };
 
   return {
@@ -38,11 +51,13 @@ const useSearchForm = ({
   };
 };
 
-export function SearchFormSection({ onSearch, onTextFilter }) {
+export function SearchFormSection({ onSearch, onTextFilter, initialText }) {
   const idText = useId();
   const idTechnology = useId();
   const idLocation = useId();
   const idExperienceLevel = useId();
+
+  const inputRef = useRef();
 
   const { handleSubmit, handleTextChange } = useSearchForm({
     idText,
@@ -52,6 +67,13 @@ export function SearchFormSection({ onSearch, onTextFilter }) {
     onSearch,
     onTextFilter,
   });
+
+  const handleClearInput = (event) => {
+    event.preventDefault();
+
+    inputRef.current.value = "";
+    onTextFilter("");
+  };
 
   return (
     <section className="jobs-search">
@@ -78,12 +100,16 @@ export function SearchFormSection({ onSearch, onTextFilter }) {
           </svg>
 
           <input
+            ref={inputRef}
             name={idText}
             id="empleos-search-input"
             type="text"
             placeholder="Buscar trabajos, empresas o habilidades"
             onChange={handleTextChange}
+            defaultValue={initialText}
           />
+
+          <button onClick={handleClearInput}>X</button>
         </div>
 
         <div className="search-filters">
